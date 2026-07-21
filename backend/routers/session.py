@@ -1,14 +1,12 @@
-from functools import partial
-from typing import List, Union, Optional, Literal
+import datetime
+from typing import List, Literal
 
-from fastapi import APIRouter, FastAPI
-from fastapi.exceptions import RequestValidationError
+from fastapi import APIRouter
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from pydantic import BaseModel
-from pymongo.synchronous.database import Database
+from starlette.requests import Request
 
-from agent.main import AgentService
-from mongo.main import mongo_client, checkpoint_db, SESSIONS
+from database.mongo.main import SESSIONS
 
 router = APIRouter(
     prefix="/api/session",
@@ -17,35 +15,56 @@ router = APIRouter(
 
 class Session(BaseModel):
     id: str
-    session_name: str
+    name: str
 
 class SendSession(BaseModel):
     id: str
     message: str
     type: Literal['text', 'image']
 
+# @router.get('/list')
+# def get_session_list() -> List[Session]:
+#     session_list = SESSIONS.find()
+#     return list(session_list)
 
 @router.get('/list')
-def get_session_list() -> List[Session]:
-    session_list = SESSIONS.find()
-    return list(session_list)
-
-@router.get('/{session_id}')
-def get_session(session_id: str) -> Session:
-    session = SESSIONS.find_one({'id': session_id})
-    return session
+def get_session_list(request: Request) -> List[Session]:
+    # agent_service = ChatAgent()
+    # res = request.app.state.chat_agent.get_messages()
+    # print(res)
+    # return res
+    return []
 
 @router.post('/chat', response_class=EventSourceResponse)
-def send_session(session_info: SendSession):
+async def send_session(session_info: SendSession,request: Request):
     session_id = session_info.id
     session_type = session_info.type
     message = session_info.message
-    agent_service = AgentService()
-    try:
-        res = agent_service.ask(session_type, message, session_id)
-        for word in res:
-            yield ServerSentEvent(data=word, event="token")
-        yield ServerSentEvent(raw_data="[DONE]", event="done")
-    except Exception as e:
-        yield ServerSentEvent(data=str(e), event="token")
-        yield ServerSentEvent(raw_data="[ERROR]", event="error")
+    res = request.app.state.chat_agent.stream(thread_id = session_id, type = session_type, input = message)
+    for word in res:
+        yield ServerSentEvent(data=word, event="token")
+
+
+    # yield ServerSentEvent(raw_data="[DONE]", event="done")
+    # try:
+    #     res = agent_service.ask(session_type, message, session_id)
+    #     for word in res:
+    #         yield ServerSentEvent(data=word, event="token")
+    #     yield ServerSentEvent(raw_data="[DONE]", event="done")
+    # except Exception as e:
+    #     yield ServerSentEvent(data=str(e), event="token")
+    #     yield ServerSentEvent(raw_data="[ERROR]", event="error")
+
+
+# @router.post('/save_message', response_class=SendSession)
+# def save_session(session_info: SendSession):
+#     id = session_info.id
+#     type = session_info.type
+#     message = session_info.message
+#     created_time = datetime.datetime.now()
+
+@router.get('/{session_id}')
+def get_session(session_id: str) -> Session | None:
+    return []
+    # session = SESSIONS.find_one({'id': session_id})
+    # return session

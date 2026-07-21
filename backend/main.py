@@ -1,22 +1,33 @@
-"""
-智能厨师
-分析上传的图片
-查看图片中的菜
-根据菜名从网络中搜索菜谱，返回3条数据
-聊天记录持久化到数据库
+from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-路由
-获取聊天列表
-获取指定聊天的聊天数据
-发送消息到指定聊天
-上传图片
-"""
-from fastapi import APIRouter, FastAPI
-
+from agent.chat_agent import ChatAgent
+from database.postgres.checkpoint import checkpoint_manager
+from database.postgres.postgres import database
 # routers
 from routers.main import session_router
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    database.initialize()
+    app.state.lifespan = lifespan
+    checkpoint_manager.initialize()
+    app.state.checkpoint_saver = checkpoint_manager.saver
+    app.state.chat_agent = ChatAgent(app.state.checkpoint_saver)
+    yield
+    database.close()
+
+app = FastAPI(
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['http://localhost:3000'],
+    allow_credentials=True,
+    allow_methods=["*"],
+)
 
 app.include_router(session_router)
