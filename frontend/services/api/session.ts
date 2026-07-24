@@ -4,7 +4,8 @@ export const getSessionList = async (): Promise<Array<{
   name: string;
   id: string;
 }>> => {
-  return request('/api/session/list')
+  // return request('/api/session/list')
+  return Promise.resolve([])
 }
 
 export const sendMessage = async (params: {

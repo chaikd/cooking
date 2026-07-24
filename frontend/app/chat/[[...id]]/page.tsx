@@ -1,13 +1,16 @@
-import ChatBox from "../section/chat-box"
-import SessionList from "../section/session-list"
+import ConvasitionBox from "@/features/chat/convasition-box"
+import ConvasitionList from "@/features/chat/convasition-list"
 
-export default () => {
+export default async ({params}: {
+  params: Promise<{id: string}>
+}) => {
+  const {id} = await params
   return <div className="flex min-h-screen">
     <div className="left w-[260px]">
-      <SessionList></SessionList>
+      <ConvasitionList></ConvasitionList>
     </div>
     <div className="right flex-1">
-      <ChatBox></ChatBox>
+      <ConvasitionBox id={id}></ConvasitionBox>
     </div>
   </div>
 }

@@ -7,20 +7,12 @@ from pydantic import BaseModel
 from starlette.requests import Request
 
 from database.mongo.main import SESSIONS
+from service.chat import Session, SendSession
 
 router = APIRouter(
     prefix="/api/session",
     responses={404: {"description": "Not found"}},
 )
-
-class Session(BaseModel):
-    id: str
-    name: str
-
-class SendSession(BaseModel):
-    id: str
-    message: str
-    type: Literal['text', 'image']
 
 # @router.get('/list')
 # def get_session_list() -> List[Session]:
@@ -37,10 +29,7 @@ def get_session_list(request: Request) -> List[Session]:
 
 @router.post('/chat', response_class=EventSourceResponse)
 async def send_session(session_info: SendSession,request: Request):
-    session_id = session_info.id
-    session_type = session_info.type
-    message = session_info.message
-    res = request.app.state.chat_agent.stream(thread_id = session_id, type = session_type, input = message)
+
     for word in res:
         yield ServerSentEvent(data=word, event="token")
 

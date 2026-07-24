@@ -1,26 +1,29 @@
 import os
 from dotenv import load_dotenv
-from psycopg_pool import AsyncConnectionPool, ConnectionPool
+from psycopg_pool import ConnectionPool
 
 load_dotenv()
 
 class PostgresDB:
-    poll = None
+    pool = None
     def  __init__(self):
         super().__init__()
     def initialize(self):
-        poll = ConnectionPool(
+        pool = ConnectionPool(
             min_size=2,
             max_size=20,
             conninfo=os.getenv('POSTGRES_URL') or ''
         )
-        poll.open()
-        self.poll = poll
-    def get_poll(self):
-        return self.poll
+        pool.open()
+        self.pool = pool
+    def get_pool(self):
+        return self.pool
     def start(self):
-        self.poll.open()
+        self.pool.open()
     def close(self):
-        self.poll.close()
+        self.pool.close()
+    def action(self, cb):
+        with self.pool.connection() as conn:
+            cb(conn)
 
 database = PostgresDB()

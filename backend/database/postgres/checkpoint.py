@@ -7,7 +7,7 @@ class CheckpointManager:
     def __init__(self):
         super().__init__()
     def initialize(self):
-        saver = PostgresSaver(database.poll)
+        saver = PostgresSaver(database.pool)
         saver.setup()
         self.saver = saver
 
