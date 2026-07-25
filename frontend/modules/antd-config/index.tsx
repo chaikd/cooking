@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import { AntdRegistry } from "@ant-design/nextjs-registry"
 import { App, ConfigProvider } from "antd"
 import { ReactNode, useState } from "react"

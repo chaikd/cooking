@@ -6,6 +6,7 @@ import { useRef } from "react"
 import ChatInput from "./chat-input"
 
 export interface ChatMessageInfo {
+  id: string;
   createTime: Date | string;
   message: string;
   type: 'user' | 'ai' | 'aiThinking';
@@ -20,7 +21,6 @@ export default ({
   messages: Array<ChatMessageInfo>,
   sendMessage: (msg: string) => void
 }) => {
-  console.log("🚀 ~ messages:", messages)
   const chatInputRef = useRef<{
     getCurrentMsg: () => string
   }>(null)
@@ -33,7 +33,7 @@ export default ({
     <div className="flex-1 h-0 overflow-y-auto">
       {
         messages?.length && messages.map((v: ChatMessageInfo) => {
-          return <div className={classNames(
+          return <div key={v.id} className={classNames(
             (v.type === 'user' ? 'float-right max-w-[300px] p-2 rounded bg-blue-200' : ''),
           )}>{v.message}</div>
         }) || '输入内容，发起聊天'

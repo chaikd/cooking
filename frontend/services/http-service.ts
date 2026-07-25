@@ -48,4 +48,19 @@ request.post = (url: string, body: any) => {
   }).catch(requestCatch)
 }
 
+request.stream = (url: string, body: any) => {
+  url  = host + url
+  return fetch(url, {
+    method: 'post',
+    next: nextFetchConfig,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+    },
+    body: JSON.stringify(body)
+  }).then(res => {
+    return res.body
+  }).catch(requestCatch)
+}
+
 export default request;

@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from agent.chat_agent import ChatAgent
+from agent.chat_agent import ChatAgent, chat_agent
 from database.postgres.checkpoint import checkpoint_manager
 from database.postgres.postgres import database
 # routers
@@ -13,9 +13,10 @@ from routers.main import session_router
 async def lifespan(app: FastAPI):
     database.initialize()
     app.state.lifespan = lifespan
-    checkpoint_manager.initialize()
+    checkpoint_manager.initialize(database)
     app.state.checkpoint_saver = checkpoint_manager.saver
-    app.state.chat_agent = ChatAgent(app.state.checkpoint_saver)
+    chat_agent.setup(checkpoint_manager.saver)
+    app.state.chat_agent = chat_agent
     yield
     database.close()
 

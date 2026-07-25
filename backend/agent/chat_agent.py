@@ -2,16 +2,17 @@ from typing import Literal
 
 from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage
+from starlette.requests import Request
 
 from agent.tools.web_search import web_search
-from database.postgres.postgres import database
 from llm.model import chat_model
 from utils.path_tool import get_abs_path
 
 
 class ChatAgent():
-    def __init__(self, server):
+    def __init__(self):
         super().__init__()
+    def setup(self, server):
         self.checkpoint_server = server
         self.model = chat_model
         self.tools = [web_search]
@@ -44,3 +45,4 @@ class ChatAgent():
             for delta in message.text:
                 yield delta
 
+chat_agent = ChatAgent()

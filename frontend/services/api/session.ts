@@ -1,7 +1,7 @@
 import request from "../http-service";
 
 export const getSessionList = async (): Promise<Array<{ 
-  name: string;
+  title: string;
   id: string;
 }>> => {
   // return request('/api/session/list')
@@ -13,7 +13,7 @@ export const sendMessage = async (params: {
   message: string,
   id?: string
 }) => {
-  return request.post('/api/session/chat',params).then(res => {
+  return request.stream('/api/session/chat',params).then(res => {
     console.log(res)
     return res
   })
