@@ -34,14 +34,25 @@ class PostgresDB:
                      CREATE SCHEMA IF NOT EXISTS business
                 """)
                 conn.execute("""
+                     CREATE OR REPLACE FUNCTION update_timestamp()
+                         RETURNS TRIGGER AS
+                     $$
+                     BEGIN
+                         NEW.update_time = NOW();
+                         RETURN NEW;
+                     END;
+                     $$ LANGUAGE plpgsql;
+                """)
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS business.conversations
                     (
                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         user_id UUID NOT NULL,
-                        title varchar(200) NOT NULL,
+                        title VARCHAR(200) NOT NULL,
                         create_time TIMESTAMPTZ DEFAULT NOW(),
-                        conversation_id UUID,
-                        status varchar(20) DEFAULT 'active',
+                        conversation_id UUID NOT NULL UNIQUE,
+                        status VARCHAR(20) DEFAULT 'active',
+                        title_generated BOOLEAN DEFAULT FALSE
                         CONSTRAINT status_check CHECK(
                             status IN (
                                 'deleted', 'inactive', 'active'
@@ -49,6 +60,34 @@ class PostgresDB:
                         )
                     )
                """)
+                conn.execute("""
+                     CREATE TABLE IF NOT EXISTS business.conversation_messages
+                     (
+                         id              UUID PRIMARY KEY,
+                         user_id         UUID NOT NULL,
+                         content         TEXT NOT NULL,
+                         create_time     TIMESTAMPTZ      DEFAULT NOW(),
+                         update_time     TIMESTAMPTZ      DEFAULT NOW(),
+                         conversation_id UUID NOT NULL REFERENCES business.conversations(conversation_id),
+                         role VARCHAR(20) DEFAULT 'user',
+                         status VARCHAR(20) DEFAULT 'completed',
+                         CONSTRAINT role_check CHECK(
+                            role IN(
+                                'assistant', 'user', 'thinking'
+                            )
+                         ),
+                         CONSTRAINT  status_check CHECK(
+                            status IN(
+                                'streaming', 'completed', 'error'
+                            )
+                         )
+                     );
+                     CREATE TRIGGER trigger_update_timestamp
+                     BEFORE UPDATE
+                     ON business.conversation_messages
+                     FOR EACH ROW
+                     EXECUTE FUNCTION update_timestamp();
+                 """)
                 conn.commit()
             except Exception as e:
                 print(type(e))
@@ -60,6 +99,7 @@ class PostgresDB:
             try:
                 yield conn
             finally:
-                conn.close()
+                pass
+                # conn.close()
 
 database = PostgresDB()

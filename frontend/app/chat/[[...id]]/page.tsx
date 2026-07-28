@@ -6,6 +6,5 @@ export default async ({params}: {
 }) => {
   const {id} = await params
   const listData = await getSessionList()
-
   return <Convasition id={id} listData={listData}/>
 }

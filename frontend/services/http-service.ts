@@ -52,7 +52,6 @@ request.stream = (url: string, body: any) => {
   url  = host + url
   return fetch(url, {
     method: 'post',
-    next: nextFetchConfig,
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'text/event-stream',

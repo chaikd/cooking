@@ -6,7 +6,8 @@ export default forwardRef(({sendMessage}: {
 }, ref) => {
   const [currentMsg, setCurrentMsg] = useState('')
   useImperativeHandle(ref, () => ({
-    getCurrentMsg: () => currentMsg
+    getCurrentMsg: () => currentMsg,
+    initMsg: () => setCurrentMsg('')
   }))
   return <Input placeholder="有问题，尽管问" value={currentMsg} onChange={(e) => setCurrentMsg(e.target.value)} onPressEnter={() => sendMessage(currentMsg)}></Input>
 })

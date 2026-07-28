@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 from starlette.requests import Request
 
 from agent.tools.web_search import web_search
-from llm.model import chat_model
+from llm.model import get_chat_model
 from utils.path_tool import get_abs_path
 
 
@@ -14,7 +14,7 @@ class ChatAgent():
         super().__init__()
     def setup(self, server):
         self.checkpoint_server = server
-        self.model = chat_model
+        self.model = get_chat_model()
         self.tools = [web_search]
         self.middleware = []
 
